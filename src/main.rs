@@ -6,12 +6,14 @@ use teloxide::types::Message;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
+mod words;
+
 #[tokio::main]
 async fn main() {
     dotenv().ok();
 
     let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::DEBUG)
+        .with_max_level(Level::INFO)
         .finish();
 
     tracing::subscriber::set_global_default(subscriber)
@@ -22,7 +24,7 @@ async fn main() {
     tracing::info!("Bot logged in as @{}", bot.get_me().await.unwrap().username());
 
     teloxide::repl(bot, |bot: Bot, message: Message| async move {
-        tracing::info!("Got message: {}", message.text().unwrap());
+        tracing::info!("Got message: {:?}", message.text());
 
         let nahost = [
             "israel", "palestina", "palestinenser"
@@ -34,7 +36,11 @@ async fn main() {
 
         for word in nahost.iter() {
             if message.text().unwrap().to_lowercase().contains(word) {
-                bot.send_message(message.chat.id, "🚨 NAHOST ERKANNT 🚨").reply_to_message_id(message.id).message_thread_id(message.thread_id.unwrap()).await?;
+                let mut reply = bot.send_message(message.chat.id, "🚨 NAHOST ERKANNT 🚨").reply_to_message_id(message.id);
+                if let Some(id) = message.thread_id {
+                    reply = reply.message_thread_id(id);
+                }
+                reply.await?;
                 bot.delete_message(message.chat.id, message.id).await?;
                 return Ok(());
             }
@@ -46,7 +52,7 @@ async fn main() {
                 if let Some(id) = message.thread_id {
                     reply = reply.message_thread_id(id);
                 }
-                reply.await?;
+                reply.await?; 
 
                 bot.delete_message(message.chat.id, message.id).await?;
                 return Ok(());
