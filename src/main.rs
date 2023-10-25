@@ -23,7 +23,11 @@ async fn main() -> eyre::Result<()> {
     let deletions_file = tokio::fs::read_to_string(deletions_path).await?;
 
     let deletions: Vec<Deletion> = serde_json::from_str(&deletions_file)?;
+
+    tracing::info!("Loaded Deletions: {:#?}", deletions);
+
     let deletions = Arc::new(deletions);
+
 
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::INFO)
