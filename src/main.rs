@@ -17,6 +17,13 @@ mod words;
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::INFO)
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber)
+        .expect("setting default subscriber failed");
+
     dotenv().ok();
 
     let deletions_path = env::var("DELETIONS_FILE").unwrap_or("./deletions.json".to_string());
@@ -34,14 +41,6 @@ async fn main() -> eyre::Result<()> {
     tracing::info!("Loaded Deletions: {:#?}", deletions);
 
     let deletions = Arc::new(deletions);
-
-
-    let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::INFO)
-        .finish();
-
-    tracing::subscriber::set_global_default(subscriber)
-        .expect("setting default subscriber failed");
 
     let bot = Bot::from_env();
 
