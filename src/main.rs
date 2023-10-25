@@ -52,6 +52,7 @@ async fn main() -> eyre::Result<()> {
                 for keyword in deletion.keywords.clone() {
                     if let Some(text) = message.text() {
                         if text.to_lowercase().contains(&keyword) {
+
                             let mut reply = bot.send_message(message.chat.id, deletion.response.clone()).reply_to_message_id(message.id);
                             if let Some(id) = message.thread_id {
                                 reply = reply.message_thread_id(id);
@@ -64,6 +65,8 @@ async fn main() -> eyre::Result<()> {
                             if let Err(err) = delete_result {
                                 tracing::error!("Failed to delete message: {:?}", err)
                             }
+
+                            tracing::info!("Deleted message \"{:?}\" by {:?} (@{:?}) for keyword \"{}\"", text, message.from().unwrap().first_name, message.from().unwrap().username, keyword);
                             break 'outer;
                         }
                     }
