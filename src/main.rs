@@ -20,7 +20,14 @@ async fn main() -> eyre::Result<()> {
     dotenv().ok();
 
     let deletions_path = env::var("DELETIONS_FILE").unwrap_or("./deletions.json".to_string());
-    let deletions_file = tokio::fs::read_to_string(deletions_path).await?;
+    let deletions_file = tokio::fs::read_to_string(&deletions_path).await;
+
+    if let Err(err) = deletions_file {
+        tracing::error!("Failed to read deletions file at {}: {:?}", deletions_path, err);
+        return Err(err.into());
+    }
+
+    let deletions_file = deletions_file.unwrap();
 
     let deletions: Vec<Deletion> = serde_json::from_str(&deletions_file)?;
 
